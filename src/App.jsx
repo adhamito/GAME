@@ -7,7 +7,8 @@ const images = [
   { src: "/img/red.png" },
   { src: "/img/yellow.png" },
   { src: "/img/sports-soccer.png" },
-  { src: "/img/soccer.png" }
+  { src: "/img/soccer.png" },
+  { src: "/img/takling.jpg" }
 ];
 
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -18,7 +19,7 @@ function App() {
   const [showWinMessage, setShowWinMessage] = useState(false);
   const [stage, setStage] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [timer, setTimer] = useState(null);
+  const [timer, setTimer] = useState(30);
   const [showTimer, setShowTimer] = useState(false);
   const winSound = new Audio('/audio/win.mp3');
   const winMusic = useRef(new Audio('/audio/GTA-San-Andreas-Mission-Passed.mp3'));
@@ -45,7 +46,7 @@ function App() {
       ...Array(numCards - cardSet.length).fill({ src: "" })
     ].sort(() => Math.random() - 0.5)
       .slice(0, numCards)
-      .map((card, index) => ({ ...card, id: index, isFlipped: false }));
+      .map((card, index) => ({ ...card, id: index, isFlipped: true }));
 
     setCards(additionalCards);
     setFlippedIndices([]);
@@ -54,7 +55,10 @@ function App() {
     winMusic.current.pause();
     winMusic.current.currentTime = 0;
 
-    startTimer();
+    setTimeout(() => {
+      setCards(prevCards => prevCards.map(card => ({ ...card, isFlipped: false })));
+      resetAndStartTimer();
+    }, 1000);
   };
 
   const flipCard = (id) => {
@@ -62,7 +66,7 @@ function App() {
 
     setCards((prevCards) =>
       prevCards.map((card) =>
-        card.id === id ? { ...card, isFlipped: !card.isFlipped } : card
+        card.id === id ? { ...card, isFlipped: true } : card
       )
     );
     setFlippedIndices((prev) => [...prev, id]);
@@ -75,36 +79,40 @@ function App() {
       const secondCard = cards.find((card) => card.id === secondIndex);
       const thirdCard = cards.find((card) => card.id === thirdIndex);
 
-      if (firstCard.src === secondCard.src && firstCard.src === thirdCard.src) {
-        winSound.play();
-        winMusic.current.play();
-        setShowWinMessage(true);
-        setGameOver(true);
+      setTimeout(() => {
+        if (firstCard.src === secondCard.src && firstCard.src === thirdCard.src) {
+          winSound.play();
+          winMusic.current.play();
+          setShowWinMessage(true);
+          setGameOver(true);
+          clearInterval(intervalRef.current);
 
-        setTimeout(() => {
-          if (stage < cardCounts.length - 1) {
-            setStage(prevStage => prevStage + 1);
-            shuffle();
-          } else {
-            alert("Congratulations! You've completed all stages!");
-          }
-        }, 7000);
-      } else {
-        setTimeout(() => {
-          setCards((prevCards) =>
-            prevCards.map((card) =>
-              card.id === firstIndex || card.id === secondIndex || card.id === thirdIndex
-                ? { ...card, isFlipped: false }
-                : card
-            )
-          );
-        }, 1000);
-      }
-      setFlippedIndices([]);
+          setTimeout(() => {
+            if (stage < cardCounts.length - 1) {
+              setStage(prevStage => prevStage + 1);
+              shuffle();
+            } else {
+              alert("Congratulations! You've completed all stages!");
+            }
+          }, 7000);
+        } else {
+          setTimeout(() => {
+            setCards((prevCards) =>
+              prevCards.map((card) =>
+                card.id === firstIndex || card.id === secondIndex || card.id === thirdIndex
+                  ? { ...card, isFlipped: false }
+                  : card
+              )
+            );
+          }, 1000);
+        }
+        setFlippedIndices([]);
+      }, 1000);
     }
   }, [flippedIndices, cards, stage]);
 
-  const startTimer = () => {
+  const resetAndStartTimer = () => {
+    clearInterval(intervalRef.current);
     setTimer(30);
     setShowTimer(true);
     intervalRef.current = setInterval(() => {
@@ -117,7 +125,7 @@ function App() {
           setTimer(null);
           setShowTimer(false);
           winMusic.current.play();
-          return prevTimer - 1;
+          return 0;
         }
         return prevTimer - 1;
       });
@@ -152,7 +160,7 @@ function App() {
         </div>
       )}
 
-      <div className={`grid gap-4 mt-8 ${cards.length === 12 ? 'grid-cols-4' : cards.length === 16 ? 'grid-cols-4' : cards.length === 20 ? 'grid-cols-5' : cards.length === 24 ? 'grid-cols-6' : cards.length === 28 ? 'grid-cols-7' : cards.length === 32 ? 'grid-cols-8' : cards.length === 36 ? 'grid-cols-9' : cards.length === 40 ? 'grid-cols-10' : ''}`}>
+      <div className={`grid gap-4 mt-8 ${cards.length === 12 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : cards.length === 16 ? 'grid-cols-2 sm:grid-cols-4' : cards.length === 20 ? 'grid-cols-2 sm:grid-cols-5' : cards.length === 24 ? 'grid-cols-2 sm:grid-cols-6' : cards.length === 28 ? 'grid-cols-2 sm:grid-cols-7' : cards.length === 32 ? 'grid-cols-2 sm:grid-cols-8' : cards.length === 36 ? 'grid-cols-2 sm:grid-cols-9' : cards.length === 40 ? 'grid-cols-2 sm:grid-cols-10' : ''}`}>
         {cards.map((card) => (
           <SingelCard
             card={card}
@@ -161,7 +169,7 @@ function App() {
           />
         ))}
       </div>
-      
+
       {showWinMessage && (
         <div className="w-96 h-64 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-6 bg-white rounded shadow-lg flex flex-col items-center">
           <img src="/img/congratulations.png" alt="Congratulations" className="w-64 h-32 mb-4" />
@@ -178,9 +186,9 @@ function App() {
             onClick={() => {
               shuffle();
               setShowTimer(true);
-            }} 
-            className={`border-2 border-pink-900 px-4 py-2 bg-pink-600 text-white rounded shadow-md hover:bg-pink-700 transition duration-300 m-4`}>
-            play again
+            }}
+            className="border-2 border-pink-900 px-4 py-2 bg-pink-600 text-white rounded shadow-md hover:bg-pink-700 transition duration-300 mt-4">
+            Try Again
           </button>
         </div>
       )}
