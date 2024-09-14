@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SingelCard from './components/SingelCard';
 
-// Define unique images for cards
 const images = [
   { src: "/img/goalkeeper-glove-soccer-sport-free-vector.jpg" },
   { src: "/img/owngoal.png" },
@@ -17,39 +16,34 @@ function App() {
   const [cards, setCards] = useState([]);
   const [flippedIndices, setFlippedIndices] = useState([]);
   const [showWinMessage, setShowWinMessage] = useState(false);
-  const [stage, setStage] = useState(0); // Track the current stage
+  const [stage, setStage] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [timer, setTimer] = useState(null); // Timer for countdown
-  const [showTimer, setShowTimer] = useState(false); // State to control timer display
+  const [timer, setTimer] = useState(null);
+  const [showTimer, setShowTimer] = useState(false);
   const winSound = new Audio('/audio/win.mp3');
   const winMusic = useRef(new Audio('/audio/GTA-San-Andreas-Mission-Passed.mp3'));
   const intervalRef = useRef(null);
 
-  // Number of cards in each stage
   const cardCounts = [12, 16, 20, 24, 28, 32, 36, 40];
 
-  // Shuffle function to create a new game setup
   const shuffle = () => {
-    const numCards = cardCounts[stage]; // Get number of cards for current stage
-    const totalUniqueImages = images.length; // Total number of unique images
+    const numCards = cardCounts[stage];
+    const totalUniqueImages = images.length;
 
-    // Select a random winning image
     const winningImage = images[getRandomInt(0, totalUniqueImages - 1)].src;
 
-    // Create the card set with exactly 3 identical images and the rest different
     const cardSet = [
       { src: winningImage }, { src: winningImage }, { src: winningImage },
       ...images
-        .filter(img => img.src !== winningImage) // Exclude the winning image from the rest
-        .slice(0, Math.min(numCards - 3, totalUniqueImages - 1)) // Ensure enough unique images
+        .filter(img => img.src !== winningImage)
+        .slice(0, Math.min(numCards - 3, totalUniqueImages - 1))
         .map(img => ({ src: img.src })),
     ];
 
-    // Add cards without images
     const additionalCards = [
       ...cardSet,
-      ...Array(numCards - cardSet.length).fill({ src: "" }) // Cards without images
-    ].sort(() => Math.random() - 0.5) // Shuffle cards
+      ...Array(numCards - cardSet.length).fill({ src: "" })
+    ].sort(() => Math.random() - 0.5)
       .slice(0, numCards)
       .map((card, index) => ({ ...card, id: index, isFlipped: false }));
 
@@ -57,14 +51,12 @@ function App() {
     setFlippedIndices([]);
     setShowWinMessage(false);
     setGameOver(false);
-    winMusic.current.pause(); 
+    winMusic.current.pause();
     winMusic.current.currentTime = 0;
 
-    // Start or restart the timer
     startTimer();
   };
 
-  // Handle card flip
   const flipCard = (id) => {
     if (flippedIndices.length === 3 || cards.find(card => card.id === id).isFlipped) return;
 
@@ -76,7 +68,6 @@ function App() {
     setFlippedIndices((prev) => [...prev, id]);
   };
 
-  // Check for win condition
   useEffect(() => {
     if (flippedIndices.length === 3) {
       const [firstIndex, secondIndex, thirdIndex] = flippedIndices;
@@ -84,24 +75,21 @@ function App() {
       const secondCard = cards.find((card) => card.id === secondIndex);
       const thirdCard = cards.find((card) => card.id === thirdIndex);
 
-      // Check if the three selected cards have the same image (src)
       if (firstCard.src === secondCard.src && firstCard.src === thirdCard.src) {
-        winSound.play(); // Play win sound
-        winMusic.current.play(); // Play win music
+        winSound.play();
+        winMusic.current.play();
         setShowWinMessage(true);
         setGameOver(true);
 
-        // Move to the next stage after 7 seconds
         setTimeout(() => {
           if (stage < cardCounts.length - 1) {
-            setStage(prevStage => prevStage + 1); 
-            shuffle(); 
+            setStage(prevStage => prevStage + 1);
+            shuffle();
           } else {
             alert("Congratulations! You've completed all stages!");
           }
         }, 7000);
       } else {
-        // If not a match, flip cards back
         setTimeout(() => {
           setCards((prevCards) =>
             prevCards.map((card) =>
@@ -116,20 +104,19 @@ function App() {
     }
   }, [flippedIndices, cards, stage]);
 
-  // Handle timer countdown
   const startTimer = () => {
-    setTimer(30); 
-    setShowTimer(true); 
+    setTimer(30);
+    setShowTimer(true);
     intervalRef.current = setInterval(() => {
       setTimer(prevTimer => {
         if (prevTimer === 1) {
           clearInterval(intervalRef.current);
           setGameOver(true);
           setStage(0);
-          setCards([]); 
-          setTimer(null); 
-          setShowTimer(false); 
-          winMusic.current.play(); 
+          setCards([]);
+          setTimer(null);
+          setShowTimer(false);
+          winMusic.current.play();
           return prevTimer - 1;
         }
         return prevTimer - 1;
@@ -142,8 +129,8 @@ function App() {
     if (timer <= 0) {
       clearInterval(intervalRef.current);
       setGameOver(true);
-      setShowTimer(false); // Hide timer
-      winMusic.current.play(); // Play song on timeout
+      setShowTimer(false);
+      winMusic.current.play();
     }
   }, [timer]);
 
@@ -153,7 +140,7 @@ function App() {
       <button
         onClick={() => {
           shuffle();
-          setShowTimer(true); // Show timer when starting new game
+          setShowTimer(true);
         }}
         className={`border-2 border-pink-900 px-4 py-2 bg-pink-600 text-white rounded shadow-md hover:bg-pink-700 transition duration-300 ${gameOver ? 'hidden' : ''}`}>
         New Game
@@ -188,13 +175,13 @@ function App() {
           <h2 className="text-2xl font-bold text-red-600">Loser Yahooooooo!</h2>
           <audio src="/Audio/loser.mp3" autoPlay />
           <button
-        onClick={() => {
-          shuffle();
-          setShowTimer(true); // Show timer when starting new game
-        }} 
-        className={`border-2 border-pink-900 px-4 py-2 bg-pink-600 text-white rounded shadow-md hover:bg-pink-700 transition duration-300 m-4 `}>
-        play again
-      </button>
+            onClick={() => {
+              shuffle();
+              setShowTimer(true);
+            }} 
+            className={`border-2 border-pink-900 px-4 py-2 bg-pink-600 text-white rounded shadow-md hover:bg-pink-700 transition duration-300 m-4`}>
+            play again
+          </button>
         </div>
       )}
     </div>
