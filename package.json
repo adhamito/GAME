@@ -1,8 +1,9 @@
 {
-  "name": "game",
+  "name": "Memory-Match-Challenge",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": "Adham Almechkor <aalmechkor2@gmail.com>",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
